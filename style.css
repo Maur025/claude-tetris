@@ -19,10 +19,21 @@ body {
   position: relative;
 }
 
+.title {
+  display: flex;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  margin-bottom: 16px;
+  padding-left: 8px; /* compensa el letter-spacing final */
+}
+
 .game-container {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  position: relative;
 }
 
 #board {
