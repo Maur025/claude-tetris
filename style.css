@@ -11,7 +11,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden; /* evita que las flechas desplacen la página */
   user-select: none;
 }
 
@@ -19,14 +21,34 @@ body {
   position: relative;
 }
 
+.title {
+  display: flex;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  margin-bottom: 10px;
+  line-height: 1.1;
+  padding-left: 8px; /* compensa el letter-spacing final */
+}
+
 .game-container {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  position: relative;
+}
+
+/* Alto del tablero: 600px como máximo, o lo que quepa en pantalla
+   (título ~50px + márgenes) manteniendo la proporción 1:2 */
+.wrapper {
+  --board-h: min(600px, calc(100dvh - 90px));
 }
 
 #board {
   display: block;
+  height: var(--board-h);
+  width: calc(var(--board-h) / 2);
   border: 1px solid #2a2a3a;
   background: #1a1a25;
   border-radius: 4px;
@@ -40,6 +62,8 @@ body {
   flex-direction: column;
   gap: 20px;
   padding-top: 4px;
+  height: var(--board-h);
+  overflow: hidden;
 }
 
 .panel-section {
@@ -149,4 +173,16 @@ kbd {
 
 #restart-btn:hover {
   background: #9bbdff;
+}
+
+/* ---- Pantallas bajas: panel compacto ---- */
+@media (max-height: 720px) {
+  .title { font-size: 24px; letter-spacing: 6px; }
+  .wrapper { --board-h: min(600px, calc(100dvh - 76px)); }
+  .panel { gap: 10px; }
+  .panel-section { gap: 3px; }
+  .value { font-size: 20px; }
+  #next-canvas { width: 80px; height: 80px; }
+  .controls ul { gap: 3px; }
+  .controls li { font-size: 11px; }
 }

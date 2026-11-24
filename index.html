@@ -8,6 +8,15 @@
 </head>
 <body>
   <div class="wrapper">
+    <h1 class="title" aria-label="TETRIS">
+      <span style="color: #e57373">T</span>
+      <span style="color: #ffb74d">E</span>
+      <span style="color: #ffd54f">T</span>
+      <span style="color: #81c784">R</span>
+      <span style="color: #4dd0e1">I</span>
+      <span style="color: #ba68c8">S</span>
+    </h1>
+
     <div class="game-container">
       <canvas id="board" width="300" height="600"></canvas>
 
@@ -41,13 +50,13 @@
           </ul>
         </div>
       </aside>
-    </div>
 
-    <div id="overlay" class="overlay hidden">
-      <div class="overlay-box">
-        <p id="overlay-title">GAME OVER</p>
-        <p id="overlay-score"></p>
-        <button id="restart-btn">Reiniciar</button>
+      <div id="overlay" class="overlay hidden">
+        <div class="overlay-box">
+          <p id="overlay-title">GAME OVER</p>
+          <p id="overlay-score"></p>
+          <button id="restart-btn">Reiniciar</button>
+        </div>
       </div>
     </div>
   </div>
