@@ -18,6 +18,7 @@ Implementación del clásico **Tetris** en JavaScript vanilla, usando HTML5 Canv
     - [Opción 2: servidor local (recomendado)](#opción-2-servidor-local-recomendado)
   - [Controles](#controles)
   - [Power-ups](#power-ups)
+  - [Récords](#récords)
   - [Cómo funciona](#cómo-funciona)
     - [1. `index.html`](#1-indexhtml)
     - [2. `style.css`](#2-stylecss)
@@ -110,6 +111,17 @@ Pieza especial de **1 × 1** (cuadro violeta con una flecha hacia abajo).
 - Las líneas que se completen al compactar se eliminan y puntúan.
 - Otorga **5 puntos × nivel** por cada hueco rellenado.
 - Es más rara que la bomba: tras el mismo enfriamiento de **5 piezas normales** (compartido entre power-ups), tiene un **6 %** de probabilidad por pieza.
+
+---
+
+## Récords
+
+Las mejores marcas se guardan en el navegador (`localStorage`, clave `records`).
+
+- La **pantalla de inicio** muestra el top 5, el mejor combo y el máximo de líneas. La partida empieza al pulsar **Jugar**.
+- Al terminar, si la puntuación entra en el **top 5**, se resalta en la tabla y puedes escribir tu nombre (máximo 12 caracteres) y pulsar **Guardar**. La marca se guarda desde el primer momento como `Jugador`, así que no se pierde si reinicias o recargas sin guardar.
+- El **combo** es el número de piezas consecutivas que eliminan al menos una línea. El mejor combo y el máximo de líneas se actualizan al terminar la partida, aunque la puntuación no entre en el top.
+- **Resetear récords** (en la pantalla de inicio) borra todas las marcas tras pedir confirmación.
 
 ---
 

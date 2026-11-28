@@ -246,6 +246,138 @@ kbd {
   background: var(--accent-hover);
 }
 
+/* ---- Récords ---- */
+.overlay { overflow-y: auto; }
+.overlay-box { margin: auto; padding: 8px; } /* centrado que permite desplazar si no cabe */
+
+.start-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+
+.gameover-records,
+.records {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.gameover-records.hidden,
+.record-msg.hidden,
+.record-form.hidden {
+  display: none;
+}
+
+.record-msg {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.record-form {
+  display: flex;
+  gap: 6px;
+}
+
+#record-name {
+  width: 130px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  user-select: text; /* body desactiva la selección */
+}
+
+#record-name:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.records-table {
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.records-table th,
+.records-table td {
+  padding: 3px 6px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.records-table th {
+  font-size: 10px;
+  color: var(--label);
+}
+
+.records-table th:nth-child(2),
+.records-table td:nth-child(2) {
+  text-align: left;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.records-table tr.new-record td {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+
+.records-empty,
+.records-stats {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.records-btn {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.records-btn:hover {
+  background: var(--accent-hover);
+}
+
+.records-btn.secondary {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+  font-size: 11px;
+  padding: 4px 12px;
+}
+
+.records-btn.secondary:hover {
+  background: var(--surface);
+}
+
+@media (max-height: 720px) {
+  .overlay-box { gap: 6px; padding: 4px; }
+  .gameover-records, .records { gap: 4px; }
+  .records-table { font-size: 11px; }
+  .records-table th, .records-table td { padding: 1px 5px; }
+  .start-title { font-size: 18px; }
+  #overlay-title { font-size: 20px; }
+  #restart-btn { margin-top: 0; padding: 6px 20px; }
+  #record-name { padding: 3px 8px; }
+  .record-form .records-btn { padding: 3px 12px; }
+}
+
 /* ---- Pantallas bajas: panel compacto ---- */
 @media (max-height: 720px) {
   .theme-toggle { width: 32px; height: 32px; font-size: 15px; }
