@@ -83,13 +83,22 @@ Después abre `http://localhost:8000` en el navegador.
 
 ## Controles
 
-| Tecla     | Acción                            |
-| --------- | --------------------------------- |
-| `←` / `→` | Mover la pieza horizontalmente    |
-| `↑` o `X` | Rotar la pieza en sentido horario |
-| `↓`       | Soft drop (bajar más rápido)      |
-| `Espacio` | Hard drop (caída instantánea)     |
-| `P`       | Pausar / reanudar                 |
+| Tecla          | Acción                            |
+| -------------- | --------------------------------- |
+| `←` / `→`      | Mover la pieza horizontalmente    |
+| `↑` o `X`      | Rotar la pieza en sentido horario |
+| `↓`            | Soft drop (bajar más rápido)      |
+| `Espacio`      | Hard drop (caída instantánea)     |
+| `P` o `Escape` | Abrir / cerrar el menú de pausa   |
+
+### Menú de pausa
+
+- **Reanudar**: vuelve a la partida.
+- **Reiniciar**: empieza una partida nueva sin recargar la página.
+- **Ver controles**: muestra u oculta la lista de teclas.
+- **Nivel inicial** (1–10): nivel con el que empezará la **próxima** partida (no afecta a la actual). Se guarda en `localStorage` (clave `startLevel`). Las líneas empiezan en 0 y el nivel nunca baja del inicial.
+
+Con el menú abierto las teclas del juego quedan bloqueadas; se navega con `Tab` y se activa el control enfocado con `Enter` o `Espacio`. Al reanudar, las teclas que sigan pulsadas se ignoran hasta volver a pulsarlas.
 
 ---
 
@@ -153,7 +162,7 @@ Define la estructura visual:
 
 - Un `<canvas id="board">` de **300 × 600** píxeles donde se renderiza el tablero.
 - Un panel lateral con `SCORE`, `LINES`, `LEVEL`, vista de la siguiente pieza y la lista de controles.
-- Un overlay para los estados **PAUSA** y **GAME OVER**.
+- Un overlay para el estado **GAME OVER** y un menú de **PAUSA** independiente (`#pause-menu`).
 
 ### 2. `style.css`
 

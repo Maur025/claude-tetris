@@ -134,6 +134,7 @@ const GRAVITY_CELL_SCORE = 5;   // puntos por hueco rellenado (× nivel)
 const POWERUP_COOLDOWN = 5;     // mínimo de piezas normales entre power-ups
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
+const MAX_START_LEVEL = 10; // máximo del selector de nivel inicial
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -148,8 +149,18 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeBtn = document.getElementById('theme-toggle');
 const skinSelect = document.getElementById('skin-select');
+const pauseMenu = document.getElementById('pause-menu');
+const resumeBtn = document.getElementById('resume-btn');
+const pauseRestartBtn = document.getElementById('pause-restart-btn');
+const controlsBtn = document.getElementById('controls-btn');
+const pauseControls = document.getElementById('pause-controls');
+const startLevelSelect = document.getElementById('start-level');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId, piecesSincePowerUp;
+let startLevel; // nivel con el que empezó la partida actual
+let nextStartLevel = loadStartLevel(); // elegido en el menú para la próxima partida
+// Teclas pulsadas desde que se (re)anudó la partida; filtra las que venían retenidas
+const pressedKeys = new Set();
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -207,6 +218,10 @@ function merge() {
         board[current.y + r][current.x + c] = current.shape[r][c];
 }
 
+function dropIntervalFor(lvl) {
+  return Math.max(100, 1000 - (lvl - 1) * 90);
+}
+
 function clearLines() {
   let cleared = 0;
   for (let r = ROWS - 1; r >= 0; r--) {
@@ -223,8 +238,8 @@ function clearLines() {
   if (cleared) {
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
-    level = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    level = Math.max(startLevel, Math.floor(lines / 10) + 1);
+    dropInterval = dropIntervalFor(level);
     updateHUD();
   }
 }
@@ -705,15 +720,42 @@ function endGame() {
 function togglePause() {
   if (gameOver) return;
   paused = !paused;
-  if (!paused) {
+  if (paused) {
+    cancelAnimationFrame(animId);
+    openPauseMenu();
+  } else {
+    closePauseMenu();
+    pressedKeys.clear();
+    dropAccum = 0;
     lastTime = performance.now();
     loop(lastTime);
-  } else {
-    cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
   }
+}
+
+function openPauseMenu() {
+  pauseMenu.classList.remove('hidden');
+  resumeBtn.focus();
+}
+
+function closePauseMenu() {
+  // sin foco, Espacio/Enter no pueden reactivar un control del menú
+  if (pauseMenu.contains(document.activeElement)) document.activeElement.blur();
+  pauseMenu.classList.add('hidden');
+  showControls(false);
+}
+
+function showControls(show) {
+  pauseControls.classList.toggle('hidden', !show);
+  controlsBtn.setAttribute('aria-expanded', String(show));
+  controlsBtn.textContent = show ? 'Ocultar controles' : 'Ver controles';
+}
+
+function loadStartLevel() {
+  try {
+    const saved = Number(localStorage.getItem('startLevel'));
+    if (Number.isInteger(saved) && saved >= 1 && saved <= MAX_START_LEVEL) return saved;
+  } catch (e) { /* sin almacenamiento */ }
+  return 1;
 }
 
 function loop(ts) {
@@ -741,10 +783,11 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  startLevel = nextStartLevel;
+  level = startLevel;
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = dropIntervalFor(level);
   dropAccum = 0;
   lastTime = performance.now();
   piecesSincePowerUp = 0;
@@ -752,6 +795,8 @@ function init() {
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  closePauseMenu();
+  pressedKeys.clear();
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -759,8 +804,19 @@ function init() {
 document.addEventListener('keydown', e => {
   if (e.target instanceof HTMLInputElement) return; // escribir el nombre no controla el juego
   if (!current) return; // pantalla de inicio: aún no hay partida
-  if (e.code === 'KeyP') { togglePause(); return; }
+  if (e.code === 'KeyP' || e.code === 'Escape') {
+    // Ctrl/Cmd/Alt + tecla son atajos del navegador (p. ej. imprimir)
+    if (!e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) togglePause();
+    return;
+  }
+  // con el menú abierto las teclas solo actúan sobre el control enfocado
   if (paused || gameOver) return;
+  // autorrepetición de una tecla retenida desde antes de reanudar / reiniciar
+  if (e.repeat && !pressedKeys.has(e.code)) {
+    e.preventDefault();
+    return;
+  }
+  pressedKeys.add(e.code);
   switch (e.code) {
     case 'ArrowLeft':
       if (!collide(current.shape, current.x - 1, current.y)) current.x--;
@@ -784,6 +840,15 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+resumeBtn.addEventListener('click', togglePause);
+pauseRestartBtn.addEventListener('click', init);
+controlsBtn.addEventListener('click', () => showControls(pauseControls.classList.contains('hidden')));
+
+startLevelSelect.value = String(nextStartLevel);
+startLevelSelect.addEventListener('change', () => {
+  nextStartLevel = Number(startLevelSelect.value);
+  try { localStorage.setItem('startLevel', String(nextStartLevel)); } catch (e) { /* sin almacenamiento */ }
+});
 
 function applyTheme(theme, save) {
   document.documentElement.dataset.theme = theme;
