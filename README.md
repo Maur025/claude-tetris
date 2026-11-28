@@ -17,6 +17,7 @@ Implementación del clásico **Tetris** en JavaScript vanilla, usando HTML5 Canv
     - [Opción 1: abrir el archivo directamente](#opción-1-abrir-el-archivo-directamente)
     - [Opción 2: servidor local (recomendado)](#opción-2-servidor-local-recomendado)
   - [Controles](#controles)
+  - [Power-ups](#power-ups)
   - [Cómo funciona](#cómo-funciona)
     - [1. `index.html`](#1-indexhtml)
     - [2. `style.css`](#2-stylecss)
@@ -43,6 +44,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
 - **Pausa** y **Game Over** con opción de reinicio.
+- **Power-ups** aleatorios (ver [Power-ups](#power-ups)).
 
 ---
 
@@ -89,6 +91,19 @@ Después abre `http://localhost:8000` en el navegador.
 
 ---
 
+## Power-ups
+
+### Bomba
+
+Pieza especial de **1 × 1** (círculo rojo con mecha).
+
+- Al aterrizar **explota** y destruye el área **3 × 3** centrada en ella (recortada en los bordes del tablero). La bomba no queda en el tablero.
+- Los bloques que estaban encima **caen por columna**; si completan líneas, estas se eliminan.
+- Otorga **10 puntos × nivel** por cada celda destruida.
+- No aparece de forma seguida: exige al menos **5 piezas normales** antes de cada bomba y, a partir de ahí, tiene un **10 %** de probabilidad por pieza.
+
+---
+
 ## Cómo funciona
 
 El juego se compone de tres archivos que cooperan:
@@ -109,7 +124,7 @@ Aporta el aspecto visual con estética _dark / retro arcade_: fondo oscuro, tipo
 
 Contiene toda la lógica del juego. A grandes rasgos:
 
-- **Modelo del tablero**: una matriz `ROWS × COLS` donde cada celda guarda `0` (vacía) o un índice de color (1–8) que identifica la pieza.
+- **Modelo del tablero**: una matriz `ROWS × COLS` donde cada celda guarda `0` (vacía) o un índice de color (1–8) que identifica la pieza (el 9 es la bomba, que nunca se guarda en el tablero).
 - **Piezas**: definidas como matrices cuadradas. Para rotar se calcula la transposición + reverso de filas (`rotateCW`).
 - **Detección de colisiones** (`collide`): comprueba que ninguna celda de la pieza salga del tablero ni se solape con bloques ya fijados.
 - **Wall kicks** (`tryRotate`): si la rotación choca, intenta desplazar la pieza ±1 y ±2 columnas antes de descartar el giro.
@@ -174,9 +189,12 @@ Algunos parámetros fáciles de tunear en `game.js`:
 | `COLS`         | Columnas del tablero                     | `10`                  |
 | `ROWS`         | Filas del tablero                        | `20`                  |
 | `BLOCK`        | Tamaño en píxeles de cada celda          | `30`                  |
-| `COLORS`       | Paleta de colores por tipo de pieza      | 8 colores             |
+| `COLORS`       | Paleta de colores por tipo de pieza      | 9 colores             |
 | `LINE_SCORES`  | Puntos por 1, 2, 3 o 4 líneas eliminadas | `[0,100,300,500,800]` |
 | `dropInterval` | Velocidad inicial de caída en ms         | `1000`                |
+| `BOMB_CHANCE`  | Probabilidad de bomba tras el enfriamiento | `0.1`               |
+| `BOMB_COOLDOWN` | Piezas normales mínimas entre bombas    | `5`                   |
+| `BOMB_CELL_SCORE` | Puntos por celda destruida (× nivel)  | `10`                  |
 
 > Si cambias `COLS`, `ROWS` o `BLOCK`, recuerda ajustar también `width` y `height` del `<canvas id="board">` en `index.html` para que coincida (`COLS × BLOCK` × `ROWS × BLOCK`).
 

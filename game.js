@@ -14,6 +14,7 @@ const COLORS = [
   '#90caf9', // J - azul pálido
   '#ffb74d', // L - orange
   '#b0bec5', // N - tuerca (gris metálico)
+  '#ff1744', // B - bomba (rojo)
 ];
 
 const PIECES = [
@@ -26,9 +27,15 @@ const PIECES = [
   [[6,0,0],[6,6,6],[0,0,0]],                  // J
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
   [[8,8,8],[8,0,8],[8,8,8]],                  // N - tuerca
+  [[9]],                                       // B - bomba (power-up)
 ];
 
 const NUT = 8; // índice de la tuerca en PIECES / COLORS
+const BOMB = 9; // índice de la bomba en PIECES / COLORS
+
+const BOMB_CHANCE = 0.1;    // probabilidad de bomba una vez pasado el enfriamiento
+const BOMB_COOLDOWN = 5;    // mínimo de piezas normales entre bombas
+const BOMB_CELL_SCORE = 10; // puntos por celda destruida (× nivel)
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
@@ -45,14 +52,21 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeBtn = document.getElementById('theme-toggle');
 
-let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId, piecesSinceBomb;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
 }
 
 function randomPiece() {
-  const type = Math.floor(Math.random() * (PIECES.length - 1)) + 1;
+  let type;
+  if (piecesSinceBomb >= BOMB_COOLDOWN && Math.random() < BOMB_CHANCE) {
+    type = BOMB;
+    piecesSinceBomb = 0;
+  } else {
+    type = Math.floor(Math.random() * NUT) + 1; // 1..NUT, excluye la bomba
+    piecesSinceBomb++;
+  }
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
 }
@@ -117,6 +131,23 @@ function clearLines() {
   }
 }
 
+// Destruye el área 3×3 centrada en (cx, cy) y hace caer lo que quedaba encima
+function explode(cx, cy) {
+  const top = Math.max(0, cy - 1), bottom = Math.min(ROWS - 1, cy + 1);
+  const left = Math.max(0, cx - 1), right = Math.min(COLS - 1, cx + 1);
+  const height = bottom - top + 1;
+  let destroyed = 0;
+  for (let c = left; c <= right; c++) {
+    for (let r = top; r <= bottom; r++)
+      if (board[r][c]) destroyed++;
+    // gravedad por columna: lo de arriba baja la altura de la explosión
+    for (let r = bottom; r >= 0; r--)
+      board[r][c] = r >= height ? board[r - height][c] : 0;
+  }
+  score += destroyed * BOMB_CELL_SCORE * level;
+  updateHUD();
+}
+
 function ghostY() {
   let gy = current.y;
   while (!collide(current.shape, current.x, gy + 1)) gy++;
@@ -141,7 +172,8 @@ function softDrop() {
 }
 
 function lockPiece() {
-  merge();
+  if (current.type === BOMB) explode(current.x, current.y); // no se fusiona al tablero
+  else merge();
   clearLines();
   spawn();
 }
@@ -165,12 +197,32 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
   const color = COLORS[colorIndex];
   context.globalAlpha = alpha ?? 1;
+  if (colorIndex === BOMB) {
+    drawBomb(context, x, y, size);
+    context.globalAlpha = 1;
+    return;
+  }
   context.fillStyle = color;
   context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
   // highlight
   context.fillStyle = 'rgba(255,255,255,0.12)';
   context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
   context.globalAlpha = 1;
+}
+
+function drawBomb(context, x, y, size) {
+  const cx = (x + 0.45) * size, cy = (y + 0.58) * size;
+  context.fillStyle = COLORS[BOMB];
+  context.beginPath();
+  context.arc(cx, cy, size * 0.34, 0, Math.PI * 2);
+  context.fill();
+  // mecha
+  context.strokeStyle = '#ffb300';
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(cx + size * 0.2, cy - size * 0.25);
+  context.quadraticCurveTo((x + 0.75) * size, (y + 0.08) * size, (x + 0.92) * size, (y + 0.16) * size);
+  context.stroke();
 }
 
 // Arandela en el centro hueco de la tuerca; x, y = celda central
@@ -286,6 +338,7 @@ function init() {
   dropInterval = 1000;
   dropAccum = 0;
   lastTime = performance.now();
+  piecesSinceBomb = 0;
   next = randomPiece();
   spawn();
   updateHUD();
