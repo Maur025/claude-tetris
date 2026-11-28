@@ -18,6 +18,7 @@ Implementación del clásico **Tetris** en JavaScript vanilla, usando HTML5 Canv
     - [Opción 2: servidor local (recomendado)](#opción-2-servidor-local-recomendado)
   - [Controles](#controles)
   - [Power-ups](#power-ups)
+  - [Temas visuales](#temas-visuales)
   - [Cómo funciona](#cómo-funciona)
     - [1. `index.html`](#1-indexhtml)
     - [2. `style.css`](#2-stylecss)
@@ -113,6 +114,23 @@ Pieza especial de **1 × 1** (cuadro violeta con una flecha hacia abajo).
 
 ---
 
+## Temas visuales
+
+El selector de la esquina superior izquierda cambia la apariencia del tablero y de la vista previa al instante, sin recargar ni reiniciar la partida.
+
+| Skin          | Aspecto                                                        |
+| ------------- | -------------------------------------------------------------- |
+| **Retro**     | Bloques cuadrados y colores planos (por defecto)               |
+| **Neon**      | Fondo negro y resplandor (`shadowBlur`) con bordes brillantes  |
+| **Pastel**    | Colores suaves y bordes redondeados sobre fondo lavanda        |
+| **Pixel art** | Textura de 4 × 4 subpíxeles con luces y sombras en cada bloque |
+
+- La preferencia se guarda en `localStorage` (clave `skin`).
+- Es independiente del modo claro / oscuro. Neon, Pastel y Pixel art usan su propio fondo en ambos modos.
+- Cada skin se define en el objeto `SKINS` de `game.js`: sus colores, el fondo y la rejilla (opcionales) y la función `drawCell` que dibuja cada bloque.
+
+---
+
 ## Cómo funciona
 
 El juego se compone de tres archivos que cooperan:
@@ -198,7 +216,7 @@ Algunos parámetros fáciles de tunear en `game.js`:
 | `COLS`         | Columnas del tablero                     | `10`                  |
 | `ROWS`         | Filas del tablero                        | `20`                  |
 | `BLOCK`        | Tamaño en píxeles de cada celda          | `30`                  |
-| `COLORS`       | Paleta de colores por tipo de pieza      | 10 colores            |
+| `SKINS`        | Paleta y estilo de dibujo de cada skin   | 4 skins               |
 | `LINE_SCORES`  | Puntos por 1, 2, 3 o 4 líneas eliminadas | `[0,100,300,500,800]` |
 | `dropInterval` | Velocidad inicial de caída en ms         | `1000`                |
 | `BOMB_CHANCE`  | Probabilidad de bomba tras el enfriamiento | `0.1`               |
