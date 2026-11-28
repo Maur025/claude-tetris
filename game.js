@@ -15,6 +15,7 @@ const COLORS = [
   '#ffb74d', // L - orange
   '#b0bec5', // N - tuerca (gris metálico)
   '#ff1744', // B - bomba (rojo)
+  '#7c4dff', // G - gravedad (violeta)
 ];
 
 const PIECES = [
@@ -28,14 +29,18 @@ const PIECES = [
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
   [[8,8,8],[8,0,8],[8,8,8]],                  // N - tuerca
   [[9]],                                       // B - bomba (power-up)
+  [[10]],                                      // G - gravedad (power-up)
 ];
 
 const NUT = 8; // índice de la tuerca en PIECES / COLORS
 const BOMB = 9; // índice de la bomba en PIECES / COLORS
+const GRAVITY = 10; // índice de la gravedad en PIECES / COLORS
 
 const BOMB_CHANCE = 0.1;    // probabilidad de bomba una vez pasado el enfriamiento
-const BOMB_COOLDOWN = 5;    // mínimo de piezas normales entre bombas
 const BOMB_CELL_SCORE = 10; // puntos por celda destruida (× nivel)
+const GRAVITY_CHANCE = 0.06;    // probabilidad de gravedad una vez pasado el enfriamiento
+const GRAVITY_CELL_SCORE = 5;   // puntos por hueco rellenado (× nivel)
+const POWERUP_COOLDOWN = 5;     // mínimo de piezas normales entre power-ups
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
@@ -52,7 +57,7 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeBtn = document.getElementById('theme-toggle');
 
-let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId, piecesSinceBomb;
+let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId, piecesSincePowerUp;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -60,13 +65,11 @@ function createBoard() {
 
 function randomPiece() {
   let type;
-  if (piecesSinceBomb >= BOMB_COOLDOWN && Math.random() < BOMB_CHANCE) {
-    type = BOMB;
-    piecesSinceBomb = 0;
-  } else {
-    type = Math.floor(Math.random() * NUT) + 1; // 1..NUT, excluye la bomba
-    piecesSinceBomb++;
-  }
+  const roll = piecesSincePowerUp >= POWERUP_COOLDOWN ? Math.random() : 1;
+  if (roll < BOMB_CHANCE) type = BOMB;
+  else if (roll < BOMB_CHANCE + GRAVITY_CHANCE) type = GRAVITY;
+  else type = Math.floor(Math.random() * NUT) + 1; // 1..NUT, excluye los power-ups
+  piecesSincePowerUp = type > NUT ? 0 : piecesSincePowerUp + 1;
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
 }
@@ -148,6 +151,25 @@ function explode(cx, cy) {
   updateHUD();
 }
 
+// Compacta cada columna: los bloques caen hasta rellenar los huecos
+function compact() {
+  let filled = 0;
+  for (let c = 0; c < COLS; c++) {
+    let write = ROWS - 1;
+    let gaps = 0;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (!board[r][c]) continue;
+      gaps = Math.max(gaps, write - r); // vacías por debajo de este bloque
+      const v = board[r][c];
+      board[r][c] = 0;
+      board[write--][c] = v;
+    }
+    filled += gaps;
+  }
+  score += filled * GRAVITY_CELL_SCORE * level;
+  updateHUD();
+}
+
 function ghostY() {
   let gy = current.y;
   while (!collide(current.shape, current.x, gy + 1)) gy++;
@@ -173,6 +195,7 @@ function softDrop() {
 
 function lockPiece() {
   if (current.type === BOMB) explode(current.x, current.y); // no se fusiona al tablero
+  else if (current.type === GRAVITY) compact(); // tampoco se fusiona
   else merge();
   clearLines();
   spawn();
@@ -202,6 +225,11 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
     context.globalAlpha = 1;
     return;
   }
+  if (colorIndex === GRAVITY) {
+    drawGravity(context, x, y, size);
+    context.globalAlpha = 1;
+    return;
+  }
   context.fillStyle = color;
   context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
   // highlight
@@ -223,6 +251,24 @@ function drawBomb(context, x, y, size) {
   context.moveTo(cx + size * 0.2, cy - size * 0.25);
   context.quadraticCurveTo((x + 0.75) * size, (y + 0.08) * size, (x + 0.92) * size, (y + 0.16) * size);
   context.stroke();
+}
+
+function drawGravity(context, x, y, size) {
+  const px = x * size, py = y * size;
+  context.fillStyle = COLORS[GRAVITY];
+  context.beginPath();
+  context.roundRect(px + 1, py + 1, size - 2, size - 2, size * 0.25);
+  context.fill();
+  // flecha hacia abajo
+  context.fillStyle = '#fff';
+  context.fillRect(px + size * 0.42, py + size * 0.15, size * 0.16, size * 0.3);
+  context.beginPath();
+  context.moveTo(px + size * 0.25, py + size * 0.43);
+  context.lineTo(px + size * 0.75, py + size * 0.43);
+  context.lineTo(px + size * 0.5, py + size * 0.68);
+  context.fill();
+  // suelo
+  context.fillRect(px + size * 0.2, py + size * 0.74, size * 0.6, size * 0.1);
 }
 
 // Arandela en el centro hueco de la tuerca; x, y = celda central
@@ -338,7 +384,7 @@ function init() {
   dropInterval = 1000;
   dropAccum = 0;
   lastTime = performance.now();
-  piecesSinceBomb = 0;
+  piecesSincePowerUp = 0;
   next = randomPiece();
   spawn();
   updateHUD();

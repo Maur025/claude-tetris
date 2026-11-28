@@ -100,7 +100,16 @@ Pieza especial de **1 × 1** (círculo rojo con mecha).
 - Al aterrizar **explota** y destruye el área **3 × 3** centrada en ella (recortada en los bordes del tablero). La bomba no queda en el tablero.
 - Los bloques que estaban encima **caen por columna**; si completan líneas, estas se eliminan.
 - Otorga **10 puntos × nivel** por cada celda destruida.
-- No aparece de forma seguida: exige al menos **5 piezas normales** antes de cada bomba y, a partir de ahí, tiene un **10 %** de probabilidad por pieza.
+- No aparece de forma seguida: exige al menos **5 piezas normales** desde el último power-up y, a partir de ahí, tiene un **10 %** de probabilidad por pieza.
+
+### Gravedad
+
+Pieza especial de **1 × 1** (cuadro violeta con una flecha hacia abajo).
+
+- Al aterrizar **compacta el tablero**: en cada columna los bloques caen hasta rellenar los huecos que tienen debajo. La pieza no queda en el tablero.
+- Las líneas que se completen al compactar se eliminan y puntúan.
+- Otorga **5 puntos × nivel** por cada hueco rellenado.
+- Es más rara que la bomba: tras el mismo enfriamiento de **5 piezas normales** (compartido entre power-ups), tiene un **6 %** de probabilidad por pieza.
 
 ---
 
@@ -124,7 +133,7 @@ Aporta el aspecto visual con estética _dark / retro arcade_: fondo oscuro, tipo
 
 Contiene toda la lógica del juego. A grandes rasgos:
 
-- **Modelo del tablero**: una matriz `ROWS × COLS` donde cada celda guarda `0` (vacía) o un índice de color (1–8) que identifica la pieza (el 9 es la bomba, que nunca se guarda en el tablero).
+- **Modelo del tablero**: una matriz `ROWS × COLS` donde cada celda guarda `0` (vacía) o un índice de color (1–8) que identifica la pieza (9 es la bomba y 10 la gravedad, que nunca se guardan en el tablero).
 - **Piezas**: definidas como matrices cuadradas. Para rotar se calcula la transposición + reverso de filas (`rotateCW`).
 - **Detección de colisiones** (`collide`): comprueba que ninguna celda de la pieza salga del tablero ni se solape con bloques ya fijados.
 - **Wall kicks** (`tryRotate`): si la rotación choca, intenta desplazar la pieza ±1 y ±2 columnas antes de descartar el giro.
@@ -189,12 +198,14 @@ Algunos parámetros fáciles de tunear en `game.js`:
 | `COLS`         | Columnas del tablero                     | `10`                  |
 | `ROWS`         | Filas del tablero                        | `20`                  |
 | `BLOCK`        | Tamaño en píxeles de cada celda          | `30`                  |
-| `COLORS`       | Paleta de colores por tipo de pieza      | 9 colores             |
+| `COLORS`       | Paleta de colores por tipo de pieza      | 10 colores            |
 | `LINE_SCORES`  | Puntos por 1, 2, 3 o 4 líneas eliminadas | `[0,100,300,500,800]` |
 | `dropInterval` | Velocidad inicial de caída en ms         | `1000`                |
 | `BOMB_CHANCE`  | Probabilidad de bomba tras el enfriamiento | `0.1`               |
-| `BOMB_COOLDOWN` | Piezas normales mínimas entre bombas    | `5`                   |
+| `POWERUP_COOLDOWN` | Piezas normales mínimas entre power-ups | `5`                |
 | `BOMB_CELL_SCORE` | Puntos por celda destruida (× nivel)  | `10`                  |
+| `GRAVITY_CHANCE` | Probabilidad de gravedad tras el enfriamiento | `0.06`       |
+| `GRAVITY_CELL_SCORE` | Puntos por hueco rellenado (× nivel) | `5`               |
 
 > Si cambias `COLS`, `ROWS` o `BLOCK`, recuerda ajustar también `width` y `height` del `<canvas id="board">` en `index.html` para que coincida (`COLS × BLOCK` × `ROWS × BLOCK`).
 
