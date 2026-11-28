@@ -19,6 +19,7 @@ Implementación del clásico **Tetris** en JavaScript vanilla, usando HTML5 Canv
   - [Controles](#controles)
   - [Power-ups](#power-ups)
   - [Temas visuales](#temas-visuales)
+  - [Récords](#récords)
   - [Cómo funciona](#cómo-funciona)
     - [1. `index.html`](#1-indexhtml)
     - [2. `style.css`](#2-stylecss)
@@ -128,6 +129,17 @@ El selector de la esquina superior izquierda cambia la apariencia del tablero y 
 - La preferencia se guarda en `localStorage` (clave `skin`).
 - Es independiente del modo claro / oscuro. Neon, Pastel y Pixel art usan su propio fondo en ambos modos.
 - Cada skin se define en el objeto `SKINS` de `game.js`: sus colores, el fondo y la rejilla (opcionales) y la función `drawCell` que dibuja cada bloque.
+
+---
+
+## Récords
+
+Las mejores marcas se guardan en el navegador (`localStorage`, clave `records`).
+
+- La **pantalla de inicio** muestra el top 5, el mejor combo y el máximo de líneas. La partida empieza al pulsar **Jugar**.
+- Al terminar, si la puntuación entra en el **top 5**, se resalta en la tabla y puedes escribir tu nombre (máximo 12 caracteres) y pulsar **Guardar**. La marca se guarda desde el primer momento como `Jugador`, así que no se pierde si reinicias o recargas sin guardar.
+- El **combo** es el número de piezas consecutivas que eliminan al menos una línea. El mejor combo y el máximo de líneas se actualizan al terminar la partida, aunque la puntuación no entre en el top.
+- **Resetear récords** (en la pantalla de inicio) borra todas las marcas tras pedir confirmación.
 
 ---
 
